@@ -9,7 +9,7 @@ import json
 import os
 import pickle
 
-KALSHI = "/Users/niusha/Documents/Projects/APMM/kalshi"
+KALSHI = "/Users/niusha/Documents/Projects/LOPAMM/kalshi"
 SRC = f"{KALSHI}/data/games/SPORTSMULTIJUN16.json"
 OUT = "exp4_multi_data"
 KCAP = 13

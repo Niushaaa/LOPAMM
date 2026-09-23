@@ -7,9 +7,9 @@ Both designs fill the SAME flow. Per arriving trader (full-trade on leg-set S):
     premium = sum of sub-trade cash paid
     E[payout] = sum_{S'<=S} Delta_{S'} . mu(S'),  mu(S') = marginal of final joint on S'
     p_eff = E[payout] / premium                      (effective payout-per-premium)
-We report the PER-TRADER ratio  q = p_eff(APMM) / p_eff(ind), broken down by parlay
+We report the PER-TRADER ratio  q = p_eff(LOPAMM) / p_eff(ind), broken down by parlay
 order |S|. q ~ 1 means the informed trader gets the same effective deal under both
-designs -- so APMM's lower operator loss is a genuine design efficiency, not value
+designs -- so LOPAMM's lower operator loss is a genuine design efficiency, not value
 extracted from traders' pockets.
 
 Reuses the Exp 1 engine (cached joint flows). See EXPERIMENT3_PLAN.md.
@@ -26,7 +26,7 @@ from parlay_mm_sim import DesignA, DesignC
 
 OUT = "results_exp3_trader"
 M = 15
-MODELS = [("APMM", DesignA), ("ind", DesignC)]
+MODELS = [("LOPAMM", DesignA), ("ind", DesignC)]
 
 CFG = dict(k=6, k_auto=False, support="pyramid", decay=1.25, b=10.0, rho=1.0,
            rho_0=5.0, n_steps=M * 10, steps_per_M=10, n_settle=2000, seeds=100,
@@ -38,8 +38,8 @@ def main():
     struct = E.build_sparse_structure(M, CFG["k"])
     k, b = CFG["k"], CFG["b"]
 
-    qbyS = {l: [] for l in range(1, k + 1)}            # per-trader p_eff_APMM / p_eff_ind
-    effA = {l: [] for l in range(1, k + 1)}            # per-trader p_eff (APMM)
+    qbyS = {l: [] for l in range(1, k + 1)}            # per-trader p_eff_LOPAMM / p_eff_ind
+    effA = {l: [] for l in range(1, k + 1)}            # per-trader p_eff (LOPAMM)
     effI = {l: [] for l in range(1, k + 1)}            # per-trader p_eff (ind)
     for seed in range(CFG["seeds"]):
         flow = E.load_or_build_flow(struct, CFG, seed)
@@ -59,7 +59,7 @@ def main():
                     premium += cash
                     epay += float(delta @ mu[Sp])      # expected payout
                 rec[nm] = (premium, epay)
-            (pA, eA), (pI, eI) = rec["APMM"], rec["ind"]
+            (pA, eA), (pI, eI) = rec["LOPAMM"], rec["ind"]
             if pA > 1e-9 and pI > 1e-9 and eI > 1e-12:
                 rA, rI = eA / pA, eI / pI
                 qbyS[len(S)].append(rA / rI)
@@ -91,7 +91,7 @@ def main():
         return float(np.mean((x >= 0.9) & (x <= 1.1))) if len(x) else np.nan
 
     qpool = np.concatenate([qbyS[l] for l in ls])
-    print("\nper-trader p_eff_APMM / p_eff_ind  (expected payout, no settlement):")
+    print("\nper-trader p_eff_LOPAMM / p_eff_ind  (expected payout, no settlement):")
     print(f"  {'|S|':>4} {'mean':>7} {'CI95_lo':>8} {'CI95_hi':>8} "
           f"{'in±10%':>7} {'median':>7} {'#':>7}")
     for l in ls + ["pool"]:
@@ -103,7 +103,7 @@ def main():
         print(f"  {tag:>4} {q.mean():>7.3f} {lo:>8.3f} {hi:>8.3f} "
               f"{band(q):>7.3f} {np.median(q):>7.3f} {len(q):>7}")
 
-    # --- #4 per-trader correlation of p_eff (APMM vs ind) ---
+    # --- #4 per-trader correlation of p_eff (LOPAMM vs ind) ---
     from scipy.stats import spearmanr
 
     def corr(sel):                                 # sel = list of |S| to pool
@@ -113,7 +113,7 @@ def main():
 
     for name, sel in [("all |S|", ls), ("|S|>=2", [l for l in ls if l >= 2])]:
         pear, spear, n = corr(sel)
-        print(f"per-trader p_eff correlation (APMM vs ind), {name:>7}: "
+        print(f"per-trader p_eff correlation (LOPAMM vs ind), {name:>7}: "
               f"Pearson={pear:.4f}  Spearman={spear:.4f}  (n={n})")
     print("  (|S|=1 base sub-trades are identical under both designs -> exact corr)")
 
@@ -125,7 +125,7 @@ def main():
     ax.axhline(1, color="tab:red", lw=1.2, ls=":", label="equal deal (=1)")
     ax.set_xticks(ls)
     ax.set_xlabel("parlay order  |S|  (number of legs)")
-    ax.set_ylabel(r"$p_{\mathrm{eff}}^{\mathrm{APMM}} / p_{\mathrm{eff}}^{\mathrm{ind}}$")
+    ax.set_ylabel(r"$p_{\mathrm{eff}}^{\mathrm{LOPAMM}} / p_{\mathrm{eff}}^{\mathrm{ind}}$")
     ax.legend(frameon=False)
     ax.grid(alpha=0.3)
     fig.tight_layout()

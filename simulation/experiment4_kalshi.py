@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Experiment 4 -- replay real Kalshi NBA parlay order flow through APMM / ind / base and
+Experiment 4 -- replay real Kalshi NBA parlay order flow through LOPAMM / ind / base and
 settle at the realized game outcomes, using the Exp 1 engine exactly.
 
 Per trade on leg-set S: build ONE shared target marginal tau_S (pin the conjunction to the
 executed price p, keep the other outcomes proportional to the shared base-leg product),
 project it to marg[Sp] for every Sp in the sub-lattice, then run Exp 1's bottom-up
 `sweep_books`: buys-only `match_to_target` on each Sp ascending by |Sp| (base markets ->
-pairs -> ... -> S), charging cash at each level. APMM = DesignA (shared residuals), ind =
+pairs -> ... -> S), charging cash at each level. LOPAMM = DesignA (shared residuals), ind =
 DesignC (independent at every level), base = DesignC singletons-only. Settle at `realized`.
 
 Runs Exp 1's DesignA/DesignC + sweep_books on a light (no-2^M) lattice; k>KCAP dropped.
@@ -143,7 +143,7 @@ def run_game(game):
             _, pi, p, sz, sd = tr
             S, conj = parlays[pi]["S"], parlays[pi]["conj"]
             ci = struct.out_index[S][conj]
-            marg = _shared_marg(struct, A, S, ci, p)   # shared across APMM/ind
+            marg = _shared_marg(struct, A, S, ci, p)   # shared across LOPAMM/ind
             _sweep(A, struct.subsets[S], marg, cA)
             _sweep(I, struct.subsets[S], marg, cI)
             # base: no parlay markets -> only genuine base trades touch it
@@ -163,18 +163,18 @@ def run_game(game):
 
     pA, pI, pB = pay_lvl(A), pay_lvl(I), pay_lvl(Bd)
     lvls = range(1, max((len(p["S"]) for p in parlays), default=1) + 1)
-    a_lvl = {j: pA.get(j, 0.0) - cA.get(j, 0.0) for j in lvls}      # loss by level, APMM
+    a_lvl = {j: pA.get(j, 0.0) - cA.get(j, 0.0) for j in lvls}      # loss by level, LOPAMM
     i_lvl = {j: pI.get(j, 0.0) - cI.get(j, 0.0) for j in lvls}      # loss by level, ind
-    apmm_t = sum(a_lvl.values()); ind_t = sum(i_lvl.values())
+    lopamm_t = sum(a_lvl.values()); ind_t = sum(i_lvl.values())
     base_t = sum(pB.get(j, 0.0) - cB.get(j, 0.0) for j in cB)       # base: level 1 only
     return {
         "suffix": game["suffix"], "M": game["M"], "legs": game["legs"],
         "maxK": max((len(p["S"]) for p in parlays), default=0),
         "parlayTrades": sum(1 for t in game["tape"] if t[0] == "parlay"),
         "dropped": game["dropped"],
-        "base_total": base_t, "ind_total": ind_t, "apmm_total": apmm_t,
-        "ind_parlay": ind_t - base_t, "apmm_parlay": apmm_t - base_t,
-        "ind_by_level": i_lvl, "apmm_by_level": a_lvl,
+        "base_total": base_t, "ind_total": ind_t, "lopamm_total": lopamm_t,
+        "ind_parlay": ind_t - base_t, "lopamm_parlay": lopamm_t - base_t,
+        "ind_by_level": i_lvl, "lopamm_by_level": a_lvl,
         "native_parlay": nat_par, "native_total": nat_base + nat_par,
     }
 
@@ -190,12 +190,12 @@ def main():
         r = rows[-1]
         print(f"{r['suffix']:>16} M={r['M']:>3} k={r['maxK']:>2} pTr={r['parlayTrades']:>4} "
               f"drop={r['dropped']} | parlay  ind={r['ind_parlay']:9.3f} "
-              f"apmm={r['apmm_parlay']:9.3f} | total base={r['base_total']:8.1f}", flush=True)
+              f"lopamm={r['lopamm_parlay']:9.3f} | total base={r['base_total']:8.1f}", flush=True)
     json.dump(rows, open(f"{OUT}/per_game.json", "w"), indent=1)
-    ap = np.array([r["apmm_parlay"] for r in rows])
+    ap = np.array([r["lopamm_parlay"] for r in rows])
     ind = np.array([r["ind_parlay"] for r in rows])
-    print(f"\n{len(rows)} games | corpus parlay P&L  ind={ind.sum():.1f}  apmm={ap.sum():.1f}"
-          f"  | APMM<=ind in {int((ap <= ind + 1e-9).sum())}/{len(rows)}")
+    print(f"\n{len(rows)} games | corpus parlay P&L  ind={ind.sum():.1f}  lopamm={ap.sum():.1f}"
+          f"  | LOPAMM<=ind in {int((ap <= ind + 1e-9).sum())}/{len(rows)}")
 
 
 if __name__ == "__main__":

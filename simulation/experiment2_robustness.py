@@ -3,7 +3,7 @@
 Experiment 2 -- Robustness: net loss under parameter sweeps at fixed M=10.
 
 Sweeps one flow parameter at a time around the Exp-1 operating point and plots net
-loss (APMM / ind / base) vs the swept parameter, with APMM's exact per-seed min-max
+loss (LOPAMM / ind / base) vs the swept parameter, with LOPAMM's exact per-seed min-max
 band. See EXPERIMENT2_PLAN.md.
 
 Axes (paper name -> code knob):
@@ -28,7 +28,7 @@ import experiment1_loworder as E
 
 OUT = "results_exp2_robustness"
 M = 10
-COL = {"ind": "tab:red", "APMM": "tab:blue", "base": "tab:green"}
+COL = {"ind": "tab:red", "LOPAMM": "tab:blue", "base": "tab:green"}
 
 # Exp-1 operating point at M=10 (full cfg the engine expects)
 CENTER = dict(k=4, k_auto=False, support="pyramid", decay=1.25, b=10.0,
@@ -92,18 +92,18 @@ def run_sweep(key, values):
             stats[nm]["max"].append(data[nm].max())
         print(f"    {key}={v:<5} |D|={supp:3d}  "
               f"base={stats['base']['mean'][-1]:8.2f} "
-              f"APMM={stats['APMM']['mean'][-1]:8.2f} "
+              f"LOPAMM={stats['LOPAMM']['mean'][-1]:8.2f} "
               f"ind={stats['ind']['mean'][-1]:8.2f}", flush=True)
     return np.array(xs, float), stats, supps
 
 
 def panel(ax, xs, stats, xlabel, logx):
-    amean = np.array(stats["APMM"]["mean"])
-    amin = np.array(stats["APMM"]["min"]); amax = np.array(stats["APMM"]["max"])
-    # APMM mean with a min->max range line (whisker) at each point
+    amean = np.array(stats["LOPAMM"]["mean"])
+    amin = np.array(stats["LOPAMM"]["min"]); amax = np.array(stats["LOPAMM"]["max"])
+    # LOPAMM mean with a min->max range line (whisker) at each point
     ax.errorbar(xs, amean, yerr=[amean - amin, amax - amean], fmt="o-",
-                color=COL["APMM"], lw=2, ms=4, capsize=3, elinewidth=1.2,
-                label="APMM (mean, min–max)")
+                color=COL["LOPAMM"], lw=2, ms=4, capsize=3, elinewidth=1.2,
+                label="LOPAMM (mean, min–max)")
     ax.plot(xs, stats["ind"]["mean"], "s-", color=COL["ind"], lw=2, ms=4, label="ind")
     ax.plot(xs, stats["base"]["mean"], "^-", color=COL["base"], lw=1.6, ms=4, label="base")
     ax.axhline(0, color="0.7", lw=0.8, zorder=0)

@@ -1,7 +1,7 @@
 # Experiment 2 — Robustness: net loss under parameter sweeps
 
 **Goal.** Stress-test the mechanism by sweeping the flow parameters (order, sparsity,
-magnitude of belief updates) and showing APMM's net loss stays low/bounded while ind
+magnitude of belief updates) and showing LOPAMM's net loss stays low/bounded while ind
 responds — i.e. the Exp 1 result is robust across the operating regime, not a
 single-point artifact. Fix **M=10** (fast) and sweep **one** parameter at a time around
 the Exp 1 operating point.
@@ -53,10 +53,10 @@ Notes:
   `C(M,l)`); at **ρ=0.1** the counts saturate to `C(M,l)` so |D| ≈ all `≤k` leg-sets
   (~385 at k=4) — probes the explosion. **ρ=2** halves each level.
 - Ranges kept near/inside the low-order regime (`k=O(1)`, bounded magnitude): `B_θ≤5`,
-  `R≤10`, `k≤8` — beyond these APMM's buys-only leak dominates.
-- The APMM curve is drawn as **mean with a min→max range whisker** at each point (not a
+  `R≤10`, `k≤8` — beyond these LOPAMM's buys-only leak dominates.
+- The LOPAMM curve is drawn as **mean with a min→max range whisker** at each point (not a
   shaded band).
-- **R = T/M** is the re-quote frequency: at low R (few trades) APMM's buys-only leak is
+- **R = T/M** is the re-quote frequency: at low R (few trades) LOPAMM's buys-only leak is
   negligible; it grows with R. This is the mechanism axis (§5).
 - **k** is swept with a fixed `--k` (not `--k_auto`); `k≤M`.
 
@@ -65,7 +65,7 @@ Notes:
 ## 4. Outputs
 
 For each swept parameter, a figure **net loss vs the swept parameter** with three curves
-(APMM / ind / base means) plus APMM's **exact per-seed min–max band** — the Exp 1 figure
+(LOPAMM / ind / base means) plus LOPAMM's **exact per-seed min–max band** — the Exp 1 figure
 with the x-axis changed from M to the parameter. Written to
 `results_exp2_robustness/exp2_sweep_<param>.png/.pdf`, plus a combined 2×2 panel
 `exp2_all.png` for the paper.
@@ -79,9 +79,9 @@ all four sweeps (already cached from Exp 1).
 
 ## 5. Success criteria (robustness)
 
-- **APMM robust to order / sparsity / magnitude:** stays low/flat (near or below the base
+- **LOPAMM robust to order / sparsity / magnitude:** stays low/flat (near or below the base
   floor) across the **ρ, B_θ, k** sweeps — the headline robustness claim.
-- **R (frequency) is the boundary:** APMM's net loss **grows with R** (more re-quotes ⇒
+- **R (frequency) is the boundary:** LOPAMM's net loss **grows with R** (more re-quotes ⇒
   more buys-only leak) while ind is ~R-insensitive — this exposes the mechanism and
   justifies the low-order/few-trade (`T=10M`) operating point.
 - **ind responds** to the low-order axes: grows with `k↑` (more orders to independently
@@ -89,7 +89,7 @@ all four sweeps (already cached from Exp 1).
   belief updates); ~flat in R.
 - **base** responds to `B_θ` (base increment ≤ B_θ) and to `R` (more re-quotes ratchet the
   base books); ~flat in ρ and k (it only ever trades singletons).
-- **gap `ind−APMM`** stays wide across ρ, B_θ, k; it narrows only at large R (the leak).
+- **gap `ind−LOPAMM`** stays wide across ρ, B_θ, k; it narrows only at large R (the leak).
 
 ---
 
@@ -99,8 +99,8 @@ all four sweeps (already cached from Exp 1).
 1. For each of the 4 sweeps, for each value: run the Exp 1 engine at M=10 with that knob
    set (others at center) — `run(cfg)` with `M_list=[10]` — which computes-or-loads the
    cached result.
-2. Read per-seed net loss (APMM/ind/base) from the `result_cache` bundle for each point.
-3. Plot net loss vs the swept parameter (means + APMM min–max band), one panel per sweep.
+2. Read per-seed net loss (LOPAMM/ind/base) from the `result_cache` bundle for each point.
+3. Plot net loss vs the swept parameter (means + LOPAMM min–max band), one panel per sweep.
 
 Determinism/caching identical to Exp 1. Runtime: ~1 min/point at M=10/40 seeds; ~4×6 ≈
 24 points → a few minutes total, then instant on re-plot.
@@ -112,20 +112,20 @@ Determinism/caching identical to Exp 1. Runtime: ~1 min/point at M=10/40 seeds; 
 Beyond the four sweeps, these would strengthen the evaluation section:
 
 1. **Re-quote-frequency ablation — now the R sweep (§3), good.** Frame R=T/M as the
-   mechanism axis in the paper: APMM bounded at low R, leaking as R grows, ind
+   mechanism axis in the paper: LOPAMM bounded at low R, leaking as R grows, ind
    R-insensitive — this is what justifies the `T=10M` operating point. Make sure the R
    panel is discussed as *mechanism*, not just another robustness knob.
-2. **Price-accuracy panel (H3).** Show APMM isn't buying its low loss with worse prices:
-   KL(quoted ‖ true marginal) vs M (or vs the swept param). If `KL(APMM) ≲ KL(ind)`, it
-   rules out "APMM just mis-quotes." One small figure.
+2. **Price-accuracy panel (H3).** Show LOPAMM isn't buying its low loss with worse prices:
+   KL(quoted ‖ true marginal) vs M (or vs the swept param). If `KL(LOPAMM) ≲ KL(ind)`, it
+   rules out "LOPAMM just mis-quotes." One small figure.
 3. **Informed-trader-profit histogram.** The trader-profit ↔ operator-loss identity is a
    clean incentive story: the informed trader extracts a fat right tail against ind and a
-   much tighter distribution against APMM. A histogram figure makes "APMM is robust to
+   much tighter distribution against LOPAMM. A histogram figure makes "LOPAMM is robust to
    informed order flow" visceral.
 4. **Support-construction robustness.** Repeat the Exp 1 M-sweep for **both** `pyramid`
    and `flat` (already supported) as a supplementary, to show the separation isn't an
    artifact of one support rule.
-5. **Parameter-count / subsidy comparison.** APMM stores `3^M−1` shared parameters (one
+5. **Parameter-count / subsidy comparison.** LOPAMM stores `3^M−1` shared parameters (one
    per partial assignment) that every higher market reuses, vs ind's independent
    per-book parameters. A short table/plot of "operator-subsidized parameters" and the
    resulting loss makes the sharing → efficiency argument concrete.

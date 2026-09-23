@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Paper figure: operator net loss vs M for ind / APMM / base.
+Paper figure: operator net loss vs M for ind / LOPAMM / base.
 
-- ind, base, APMM plotted as mean-over-seeds lines.
-- APMM additionally shows the EXACT per-seed range (min..max band) across all seeds.
-- Overlay c*M^2 + d, least-squares fit to APMM's worst-case (max-over-seeds) loss
+- ind, base, LOPAMM plotted as mean-over-seeds lines.
+- LOPAMM additionally shows the EXACT per-seed range (min..max band) across all seeds.
+- Overlay c*M^2 + d, least-squares fit to LOPAMM's worst-case (max-over-seeds) loss
   then raised so it strictly upper-bounds every point.
 
 Reads per-seed net loss from the cached results in results_exp1_loworder/result_cache.
@@ -24,8 +24,8 @@ import matplotlib.pyplot as plt
 
 RC = "results_exp1_loworder/result_cache"
 OUT = "results_exp1_loworder"
-MODELS = ["ind", "APMM", "base"]
-COL = {"ind": "tab:red", "APMM": "tab:blue", "base": "tab:green"}
+MODELS = ["ind", "LOPAMM", "base"]
+COL = {"ind": "tab:red", "LOPAMM": "tab:blue", "base": "tab:green"}
 
 
 def decay_tag(support, decay):
@@ -68,8 +68,8 @@ def main():
     if len(Ms) == 0:
         print("no cached data found for this config"); return
     mean = {nm: np.array([data[M][nm].mean() for M in Ms]) for nm in MODELS}
-    amin = np.array([data[M]["APMM"].min() for M in Ms])
-    amax = np.array([data[M]["APMM"].max() for M in Ms])
+    amin = np.array([data[M]["LOPAMM"].min() for M in Ms])
+    amax = np.array([data[M]["LOPAMM"].max() for M in Ms])
 
     Mf = Ms.astype(float)
     c, d0 = np.polyfit(Mf ** 2, amax, 1)              # amax ~ c*M^2 + d0
@@ -80,9 +80,9 @@ def main():
     print(f"bound c*M^2 + d:  c = {c:.4g}   d = {d:.4g}   (binds at M={mbind})")
 
     fig, ax = plt.subplots(figsize=(7.2, 5.0))
-    ax.errorbar(Ms, mean["APMM"], yerr=[mean["APMM"] - amin, amax - mean["APMM"]],
-                fmt="o-", color=COL["APMM"], lw=2, ms=4, capsize=3, elinewidth=1.1,
-                label="APMM (mean, min–max)")
+    ax.errorbar(Ms, mean["LOPAMM"], yerr=[mean["LOPAMM"] - amin, amax - mean["LOPAMM"]],
+                fmt="o-", color=COL["LOPAMM"], lw=2, ms=4, capsize=3, elinewidth=1.1,
+                label="LOPAMM (mean, min–max)")
     ax.plot(Ms, mean["ind"], "s-", color=COL["ind"], lw=2, ms=4, label="ind (mean)")
     ax.plot(Ms, mean["base"], "^-", color=COL["base"], lw=1.6, ms=4,
             label="base (floor, mean)")
@@ -101,10 +101,10 @@ def main():
         fig.savefig(f"{OUT}/paper_net_loss_{tag}.{ext}", dpi=200)
     print(f"saved {OUT}/paper_net_loss_{tag}.png and .pdf")
 
-    print(f"\n{'M':>3} {'ind':>9} {'APMM_mean':>10} {'APMM_min':>9} "
-          f"{'APMM_max':>9} {'cM^2+d':>9} {'base':>8}")
+    print(f"\n{'M':>3} {'ind':>9} {'LOPAMM_mean':>10} {'LOPAMM_min':>9} "
+          f"{'LOPAMM_max':>9} {'cM^2+d':>9} {'base':>8}")
     for i, M in enumerate(Ms):
-        print(f"{M:>3} {mean['ind'][i]:>9.2f} {mean['APMM'][i]:>10.2f} "
+        print(f"{M:>3} {mean['ind'][i]:>9.2f} {mean['LOPAMM'][i]:>10.2f} "
               f"{amin[i]:>9.2f} {amax[i]:>9.2f} {bnd[i]:>9.2f} {mean['base'][i]:>8.2f}")
 
 

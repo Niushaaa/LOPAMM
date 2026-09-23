@@ -3,7 +3,7 @@
 Experiment 1 -- Loss scaling under synthetic LOW-ORDER informed flow.
 ====================================================================
 Tests whether realized operator net loss scales as the theory predicts:
-    APMM  stays pinned near the base floor,
+    LOPAMM  stays pinned near the base floor,
     ind   grows toward the theoretical 2^M reference,
     base  = absolute lower bound (M independent binary LMSRs, parlays unavailable).
 
@@ -35,7 +35,7 @@ from parlay_mm_sim import (
 OUTDIR = "results_exp1_loworder"
 FLOW_DIR = f"{OUTDIR}/flow_cache"
 RESULT_DIR = f"{OUTDIR}/result_cache"      # per-M aggregated results (skip recompute)
-CHECK_ROUTE = False        # opt-in eq.route guard for APMM sub-trades (--check_route)
+CHECK_ROUTE = False        # opt-in eq.route guard for LOPAMM sub-trades (--check_route)
 
 
 def _decay_tag(cfg):
@@ -52,7 +52,7 @@ def result_path(M, kM, TM, cfg):
 
 # model name -> (design class, base_only?)
 MODELS = (
-    ("APMM", DesignA, False),
+    ("LOPAMM", DesignA, False),
     ("ind",  DesignC, False),
     ("base", DesignC, True),
 )
@@ -223,7 +223,7 @@ def load_or_build_flow(struct, cfg, seed):
 
 # ---------------------------------------------------------------- execution
 def _assert_route(design, struct, Sp, tau_Sp, b):
-    """Guard (APMM only): right after a sub-trade on Sp, residual[Sp] must equal
+    """Guard (LOPAMM only): right after a sub-trade on Sp, residual[Sp] must equal
     the eq.route canonical value  b*log(tau_Sp) - sum_{T c Sp} r^{(T)}  up to an
     additive constant (the buys-only gauge). Equivalently market Sp quotes tau_Sp."""
     lower = np.zeros(len(struct.outcomes[Sp]))
@@ -323,7 +323,7 @@ def run(cfg):
     print("=" * 88)
     kdesc = "ceil(sqrt M)" if cfg.get("k_auto") else cfg["k"]
     tdesc = f"{cfg['steps_per_M']}*M" if cfg.get("steps_per_M") else cfg["n_steps"]
-    print("EXPERIMENT 1  (low-order informed flow)   APMM / ind / base")
+    print("EXPERIMENT 1  (low-order informed flow)   LOPAMM / ind / base")
     sup = cfg['support'] + (f"(decay={cfg['decay']})" if cfg['support'] == "pyramid"
                             else "")
     print(f"k={kdesc} support={sup} b={cfg['b']} "
@@ -335,7 +335,7 @@ def run(cfg):
     def mline(tag, M, kM, supp, ntr):
         print(f"  M={M} k={kM} |D|={supp:3d} trades={ntr:6d} {tag} "
               f"base={summary[(M,'base')]['net_loss'][0]:9.3f}  "
-              f"APMM={summary[(M,'APMM')]['net_loss'][0]:9.3f}  "
+              f"LOPAMM={summary[(M,'LOPAMM')]['net_loss'][0]:9.3f}  "
               f"ind={summary[(M,'ind')]['net_loss'][0]:9.3f}", flush=True)
 
     for M in cfg["M_list"]:
@@ -436,17 +436,17 @@ def write_outputs(cfg, summary):
 
     # H1-H4 verdicts
     emit()
-    gap = [summary[(M, "ind")]["net_loss"][0] - summary[(M, "APMM")]["net_loss"][0]
+    gap = [summary[(M, "ind")]["net_loss"][0] - summary[(M, "LOPAMM")]["net_loss"][0]
            for M in M_list]
     floor_ok = all(summary[(M, "base")]["net_loss"][0]
-                   <= summary[(M, "APMM")]["net_loss"][0] + 1e-6
+                   <= summary[(M, "LOPAMM")]["net_loss"][0] + 1e-6
                    <= summary[(M, "ind")]["net_loss"][0] + 1e-6 for M in M_list)
-    kl_ok = all(summary[(M, "APMM")]["kl"][0]
+    kl_ok = all(summary[(M, "LOPAMM")]["kl"][0]
                 <= 1.10 * summary[(M, "ind")]["kl"][0] for M in M_list)
-    emit(f"  H1 APMM near floor, gap(ind-APMM) widens: {[round(g,2) for g in gap]}"
+    emit(f"  H1 LOPAMM near floor, gap(ind-LOPAMM) widens: {[round(g,2) for g in gap]}"
          f" -> {'YES' if gap[-1] > gap[0] else 'NO'}")
-    emit(f"  H3 KL(APMM) <~ KL(ind): {'YES' if kl_ok else 'NO'}")
-    emit(f"  H4 base <= APMM <= ind pointwise: {'YES' if floor_ok else 'NO'}")
+    emit(f"  H3 KL(LOPAMM) <~ KL(ind): {'YES' if kl_ok else 'NO'}")
+    emit(f"  H4 base <= LOPAMM <= ind pointwise: {'YES' if floor_ok else 'NO'}")
 
     with open(f"{OUTDIR}/results.txt", "w") as fh:
         fh.write("\n".join(lines) + "\n")
@@ -481,7 +481,7 @@ def make_plots(cfg, summary):
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     M_list = cfg["M_list"]
-    colors = {"APMM": "tab:blue", "ind": "tab:red", "base": "tab:green"}
+    colors = {"LOPAMM": "tab:blue", "ind": "tab:red", "base": "tab:green"}
 
     fig, ax = plt.subplots(figsize=(7, 5))
     for nm, _, _ in MODELS:
@@ -505,7 +505,7 @@ def parse_args():
     p.add_argument("--smoke", action="store_true",
                    help="quick check: 100 trades, M in {2,3,4}, 1 seed")
     p.add_argument("--check_route", action="store_true",
-                   help="assert eq.route holds after each APMM sub-trade")
+                   help="assert eq.route holds after each LOPAMM sub-trade")
     p.add_argument("--M", type=int, nargs="+", default=[2, 3, 4, 5, 6, 7, 8])
     p.add_argument("--k", type=int, default=2)
     p.add_argument("--k_auto", action="store_true",
