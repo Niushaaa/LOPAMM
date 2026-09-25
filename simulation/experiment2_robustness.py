@@ -3,7 +3,7 @@
 Experiment 2 -- Robustness: net loss under parameter sweeps at fixed M=10.
 
 Sweeps one flow parameter at a time around the Exp-1 operating point and plots net
-loss (LOPAMM / ind / base) vs the swept parameter, with LOPAMM's exact per-seed min-max
+loss (LOPMM / ind / base) vs the swept parameter, with LOPMM's exact per-seed min-max
 band. See EXPERIMENT2_PLAN.md.
 
 Axes (paper name -> code knob):
@@ -23,12 +23,18 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+# --- paper figure typography: 1.5x matplotlib's defaults (font.size 10 -> 15) ---
+plt.rcParams.update({
+    "font.size": 15, "axes.titlesize": 18, "axes.labelsize": 15,
+    "xtick.labelsize": 15, "ytick.labelsize": 15, "legend.fontsize": 15,
+})
+
 
 import experiment1_loworder as E
 
 OUT = "results_exp2_robustness"
 M = 10
-COL = {"ind": "tab:red", "LOPAMM": "tab:blue", "base": "tab:green"}
+COL = {"ind": "tab:red", "LOPMM": "tab:blue", "base": "tab:green"}
 
 # Exp-1 operating point at M=10 (full cfg the engine expects)
 CENTER = dict(k=4, k_auto=False, support="pyramid", decay=1.25, b=10.0,
@@ -92,18 +98,18 @@ def run_sweep(key, values):
             stats[nm]["max"].append(data[nm].max())
         print(f"    {key}={v:<5} |D|={supp:3d}  "
               f"base={stats['base']['mean'][-1]:8.2f} "
-              f"LOPAMM={stats['LOPAMM']['mean'][-1]:8.2f} "
+              f"LOPMM={stats['LOPMM']['mean'][-1]:8.2f} "
               f"ind={stats['ind']['mean'][-1]:8.2f}", flush=True)
     return np.array(xs, float), stats, supps
 
 
 def panel(ax, xs, stats, xlabel, logx):
-    amean = np.array(stats["LOPAMM"]["mean"])
-    amin = np.array(stats["LOPAMM"]["min"]); amax = np.array(stats["LOPAMM"]["max"])
-    # LOPAMM mean with a min->max range line (whisker) at each point
+    amean = np.array(stats["LOPMM"]["mean"])
+    amin = np.array(stats["LOPMM"]["min"]); amax = np.array(stats["LOPMM"]["max"])
+    # LOPMM mean with a min->max range line (whisker) at each point
     ax.errorbar(xs, amean, yerr=[amean - amin, amax - amean], fmt="o-",
-                color=COL["LOPAMM"], lw=2, ms=4, capsize=3, elinewidth=1.2,
-                label="LOPAMM (mean, min–max)")
+                color=COL["LOPMM"], lw=2, ms=4, capsize=3, elinewidth=1.2,
+                label="LOPMM (mean, min–max)")
     ax.plot(xs, stats["ind"]["mean"], "s-", color=COL["ind"], lw=2, ms=4, label="ind")
     ax.plot(xs, stats["base"]["mean"], "^-", color=COL["base"], lw=1.6, ms=4, label="base")
     ax.axhline(0, color="0.7", lw=0.8, zorder=0)
@@ -124,7 +130,7 @@ def main():
         results[label] = (xplot, stats, xlabel, logx)
         fig, ax = plt.subplots(figsize=(5.2, 4.0))
         panel(ax, xplot, stats, xlabel, logx)
-        ax.legend(frameon=False, fontsize=8)
+        ax.legend(frameon=False, fontsize=12)
         fig.tight_layout()
         for ext in ("png", "pdf"):
             fig.savefig(f"{OUT}/exp2_sweep_{label}.{ext}", dpi=200)
@@ -135,7 +141,7 @@ def main():
     for axi, (label, key, values, xlabel, logx, xf) in zip(axes, combined):
         xplot, stats, xl, lx = results[label]
         panel(axi, xplot, stats, xl, lx)
-    axes[0].legend(frameon=False, fontsize=8)
+    axes[0].legend(frameon=False, fontsize=12)
     fig.tight_layout()
     for ext in ("png", "pdf"):
         fig.savefig(f"{OUT}/exp2_all.{ext}", dpi=200)

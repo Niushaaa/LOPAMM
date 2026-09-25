@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Experiment 4 -- multi-game (cross-game) Kalshi parlay flow through LOPAMM and ind only.
+Experiment 4 -- multi-game (cross-game) Kalshi parlay flow through LOPMM and ind only.
 
 Same model as experiment4_kalshi (Exp 1's bottom-up buys-only sweep, shared target from the
 base-leg product, real settlement), but SPARSE and CHECKPOINTED so it scales to ~100k
@@ -65,7 +65,7 @@ def _parlay_tau(m, ci, p):
     return tau / tau.sum()
 
 
-def _QA(rA, Sp):                                     # LOPAMM Q(Sp)=Σ_{touched T⊆Sp} rA[T]
+def _QA(rA, Sp):                                     # LOPMM Q(Sp)=Σ_{touched T⊆Sp} rA[T]
     O = _outs(Sp); q = np.zeros(len(O))
     for T in _subsets(Sp):                           # (size,lex) order == dense
         v = rA.get(T)
@@ -144,18 +144,18 @@ def main():
         return {j: pay.get(j, 0.0) - cash.get(j, 0.0) for j in set(pay) | set(cash)}
 
     a_lvl, i_lvl = by_level(rA, cA), by_level(rI, cI)
-    res = {"lopamm_by_level": {str(k): v for k, v in a_lvl.items()},
+    res = {"lopmm_by_level": {str(k): v for k, v in a_lvl.items()},
            "ind_by_level": {str(k): v for k, v in i_lvl.items()},
-           "lopamm_total": sum(a_lvl.values()), "ind_total": sum(i_lvl.values()),
+           "lopmm_total": sum(a_lvl.values()), "ind_total": sum(i_lvl.values()),
            "parlays": len(parlays), "trades": len(tape)}
     pickle.dump(res, open(f"{OUT}/result.pkl", "wb"))
     import json
     json.dump({k: (v if not isinstance(v, dict) else v) for k, v in res.items()},
               open(f"{OUT}/result.json", "w"), indent=1, default=float)
-    print(f"\nLOPAMM total loss = {res['lopamm_total']:.1f}   ind total loss = {res['ind_total']:.1f}")
+    print(f"\nLOPMM total loss = {res['lopmm_total']:.1f}   ind total loss = {res['ind_total']:.1f}")
     print("loss by parlay order |S|:")
     for j in sorted(set(a_lvl) | set(i_lvl)):
-        print(f"  |S|={j:>2}:  ind={i_lvl.get(j,0.0):12.1f}   lopamm={a_lvl.get(j,0.0):10.2f}")
+        print(f"  |S|={j:>2}:  ind={i_lvl.get(j,0.0):12.1f}   lopmm={a_lvl.get(j,0.0):10.2f}")
 
 
 if __name__ == "__main__":

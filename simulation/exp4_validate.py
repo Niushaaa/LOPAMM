@@ -58,7 +58,7 @@ def replay(game, struct):
 
     def tot(d, ck):
         return sum(c[win(S)] for S, c in d.contracts.items() if c.any()) - ck
-    return {"base": tot(Bd, cash["B"]), "ind": tot(I, cash["I"]), "lopamm": tot(A, cash["A"])}
+    return {"base": tot(Bd, cash["B"]), "ind": tot(I, cash["I"]), "lopmm": tot(A, cash["A"])}
 
 
 def main():
@@ -67,11 +67,11 @@ def main():
         g = make(seed)
         latt = K.build_lattice([(l,) for l in g["rbit"]] + [p["S"] for p in g["parlays"]])
         d = replay(g, build_structure(M)); l = replay(g, latt)
-        for nm in ("base", "ind", "lopamm"):
+        for nm in ("base", "ind", "lopmm"):
             worst = max(worst, abs(d[nm] - l[nm]))
         print("seed %d:  " % seed + "  ".join(
             f"{nm} dense={d[nm]:8.3f} latt={l[nm]:8.3f} Δ={d[nm]-l[nm]:+.1e}"
-            for nm in ("base", "ind", "lopamm")))
+            for nm in ("base", "ind", "lopmm")))
     print(f"\nmax abs diff: {worst:.3e}  -> {'MATCH' if worst < 1e-6 else 'MISMATCH'}")
 
 

@@ -2,7 +2,7 @@
 
 **Goal.** Using synthetic *informed* order flow that satisfies the low-order
 assumption, test whether the operator's realized net loss (equivalently, the
-informed trader's profit — §5) scales as the theory predicts: **LOPAMM** stays pinned
+informed trader's profit — §5) scales as the theory predicts: **LOPMM** stays pinned
 close to the **base** floor while the independent baseline **ind** grows steeply as
 more orders enter.
 
@@ -18,7 +18,7 @@ magnitude stress) and Exp 3 (Kalshi flow).
 
 | Name | Class | What it is | Books | Role |
 |------|-------|-----------|-------|------|
-| **LOPAMM** | `DesignA` | hierarchical shared-residual LMSR (eq. Q-agg) | all traded leg-sets | design under study |
+| **LOPMM** | `DesignA` | hierarchical shared-residual LMSR (eq. Q-agg) | all traded leg-sets | design under study |
 | **ind**  | `DesignC` | independent per-market LMSRs | all traded leg-sets | SOTA baseline |
 | **base** | `DesignC`, singletons only | M independent binary LMSRs, parlays unavailable | M singletons | lower reference / floor |
 
@@ -33,7 +33,7 @@ and H1/H3/H4 verdicts — no exponential fits (those live in the paper figure, �
 Sign `s_i(ω)=2ω_i−1` (ω=1 → +1; all-ones is the reference corner, from `atom_signs`).
 Walsh characters `χ_S(ω)=∏_{i∈S} s_i(ω)`. Natural parameters are scalars `θ_S`, one per
 leg-set (complete basis): the potential is `Q(ω)=Σ_S θ_S χ_S(ω)` and the joint is
-`softmax(Q/b)`. These `θ_S` are LOPAMM's `residual[S]` in the Walsh basis. A k-order
+`softmax(Q/b)`. These `θ_S` are LOPMM's `residual[S]` in the Walsh basis. A k-order
 belief change is exact: only write `θ_S` for `|S|≤k` ⇒ `θ_S≡0` for `|S|>k`.
 (The full joint is never materialized — §3 step 3.)
 
@@ -76,7 +76,7 @@ the clean scaling; spreading over more markets under-trades them and blurs it.
 `T` steps: pick **one** leg-set `S` uniformly from `D`, draw
 `Δθ_S ~ U[−ρ^{|S|}ρ_0, +ρ^{|S|}ρ_0]` (with `ρ=1` this is a flat bound `±5`), update
 `Q += Δθ_S·χ_S`. **Only Δθ is bounded — θ itself is an unbounded walk.** Few re-quotes
-(small `T`) keep LOPAMM's buys-only leak negligible (§7).
+(small `T`) keep LOPMM's buys-only leak negligible (§7).
 
 **Step 3 — the trade (marginal computed directly, no full `P`).** After the θ-update,
 `marginal_from_Q(Q, struct, S, b)` forms **only** `S`'s marginal directly from `Q` —
@@ -105,7 +105,7 @@ full leg-set; ind clipped at k) with the full `2^M` atom space. Marginals use `b
 
 Each trade re-quotes only `subsets(S)` bottom-up to the current marginals, buys-only
 (`match_to_target`):
-- **LOPAMM:** matching `Sp` writes `residual[Sp]` to the eq. route value
+- **LOPMM:** matching `Sp` writes `residual[Sp]` to the eq. route value
   `b·log τ_{Sp} − Σ_{T⊊Sp} r^{(T)}` (up to the loss-neutral buys-only gauge); lower
   orders propagate up for free. Guarded by `--check_route`.
 - **ind:** same sub-trades on independent books (each re-learns).
@@ -127,7 +127,7 @@ it hits the same `2^M` wall as the structure).
 receives the payout, so **trader net profit = payout − cash = operator net loss** — the
 reported net-loss curves *are* the informed trader's profit against each design. (A
 histogram of per-run trader profit shows a fat right tail against ind and a much tighter
-distribution against LOPAMM.)
+distribution against LOPMM.)
 
 ---
 
@@ -138,39 +138,39 @@ distribution against LOPAMM.)
 `plot_net_loss_lowM.png`. Live per-M `[running …]` / `[cached]` progress prints.
 
 **Paper figure — `paper_fig.py`.** Reads `result_cache` and draws net loss vs M for
-LOPAMM/ind/base with LOPAMM's **exact per-seed min–max band** and a **`c·M²+d` upper bound**
-on LOPAMM's worst-case (max-over-seeds) loss (least-squares fit raised to a strict bound).
+LOPMM/ind/base with LOPMM's **exact per-seed min–max band** and a **`c·M²+d` upper bound**
+on LOPMM's worst-case (max-over-seeds) loss (least-squares fit raised to a strict bound).
 Parameterized `--support --decay --steps_per_M --Mmin --Mmax --seeds`; writes
 `paper_net_loss_<config>.png/.pdf` (linear axis, no title).
 
-**Success criteria:** H1 LOPAMM near floor, gap `ind−LOPAMM` widens with M; H3
-`KL(LOPAMM) ≲ KL(ind)`; H4 `base ≤ LOPAMM ≤ ind` pointwise.
+**Success criteria:** H1 LOPMM near floor, gap `ind−LOPMM` widens with M; H3
+`KL(LOPMM) ≲ KL(ind)`; H4 `base ≤ LOPMM ≤ ind` pointwise.
 
 ---
 
 ## 7. Key finding — the leak scales with re-quote frequency
 
-LOPAMM's buys-only "leak" (shared low-order residuals, re-quoted to a drifting target,
+LOPMM's buys-only "leak" (shared low-order residuals, re-quoted to a drifting target,
 forcing corrective buys on sibling books) accumulates with the **number of re-quotes**,
-not with book inconsistency. Confirmed: many trades ⇒ LOPAMM leaks and loses to ind; an
+not with book inconsistency. Confirmed: many trades ⇒ LOPMM leaks and loses to ind; an
 active-set *consistent* full-menu sweep did **not** fix it; **few trades (one per step,
-`T=10M`) fixes it** — LOPAMM's sharing advantage then dominates. So `T` (via
+`T=10M`) fixes it** — LOPMM's sharing advantage then dominates. So `T` (via
 `steps_per_M`) is the lever, not the executor.
 
 ---
 
 ## 8. Validated result (pyramid, decay=1.25, k=⌈√M⌉, 40 seeds, M=2…20)
 
-- **`base ≤ LOPAMM ≤ ind` at every M** (H4 = YES) — the clean theoretical ordering; all
+- **`base ≤ LOPMM ≤ ind` at every M** (H4 = YES) — the clean theoretical ordering; all
   curves positive.
-- **LOPAMM tracks the floor closely while ind pulls away:** LOPAMM grows slowly, ind fast.
-  E.g. M=10: base 9.9, LOPAMM 53.7, ind 228.2.
-- **Gap `ind − LOPAMM` widens monotonically** with M (H1 = YES); H3 (KL) holds — LOPAMM prices
+- **LOPMM tracks the floor closely while ind pulls away:** LOPMM grows slowly, ind fast.
+  E.g. M=10: base 9.9, LOPMM 53.7, ind 228.2.
+- **Gap `ind − LOPMM` widens monotonically** with M (H1 = YES); H3 (KL) holds — LOPMM prices
   at least as accurately as ind.
 - ind's rise steepens where `k` steps up (`k=⌈√M⌉`: 2→3 at M=5, 3→4 at M=10, 4→5 at M=17),
   each new order adding a stratum of parlay books that ind prices independently.
 
-**Support / decay / k levers on the separation** (all preserve `base ≤ LOPAMM ≤ ind` and
+**Support / decay / k levers on the separation** (all preserve `base ≤ LOPMM ≤ ind` and
 steepen ind):
 - smaller `decay` (ρ) keeps more high-order markets (larger |D|) → steeper ind.
 - `flat` support (4M) pulls in the most high-order books → steepest ind.
@@ -185,6 +185,6 @@ steepen ind):
 `entropy_drop_by_level`, `T_CLIP`, `Structure`. Everything else (sparse structure,
 support, flow, `marginal_from_Q`, executor, settlement, `agg`, `kl`, result caching,
 reporting) lives in `experiment1_loworder.py`. **Guard:** `--check_route` asserts eq.
-route after each LOPAMM sub-trade. **Determinism:** one `default_rng(base_seed+seed)` for
+route after each LOPMM sub-trade. **Determinism:** one `default_rng(base_seed+seed)` for
 the flow, a separate stream for settlement; flows and per-M results cached; runs
 reproducible.

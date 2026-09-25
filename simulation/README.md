@@ -1,7 +1,7 @@
-# LOPAMM evaluation — parlay market-maker simulations
+# LOPMM evaluation — parlay market-maker simulations
 
 Code and experiments for the evaluation section of the **Low-order Parlay Automated Market Maker
-(LOPAMM)** paper. We compare three LMSR-based market makers for **same-game parlay**
+(LOPMM)** paper. We compare three LMSR-based market makers for **same-game parlay**
 (conjunction) markets, on synthetic and real order flow.
 
 ## Designs
@@ -10,7 +10,7 @@ All designs are logarithmic market scoring rules (LMSR) over the Walsh/canonical
 parameterization anchored at all-ones; trades are executed **buys-only** via
 `match_to_target` (bottom-up `sweep_books`).
 
-- **LOPAMM** (`DesignA`) — hierarchical, **shared** residuals: `Q^{(S)}_ω = Σ_{∅≠T⊆S} r^{(T)}_{ω|_T}`.
+- **LOPMM** (`DesignA`) — hierarchical, **shared** residuals: `Q^{(S)}_ω = Σ_{∅≠T⊆S} r^{(T)}_{ω|_T}`.
 - **ind** (`DesignC`) — an **independent** LMSR at every leg-set (no sharing).
 - **base** — singletons only (no parlays); the operational **floor**.
 - **native** (Exp 4 only) — the realized order-book maker (counters every trade at its
@@ -22,17 +22,17 @@ settlement) in `experiment1_loworder.py` and is **reused verbatim** by Exp 2–4
 ## Experiments
 
 1. **Scaling** (`experiment1_loworder.py`) — synthetic low-order informed flow; operator
-   net loss vs `M`. Result: `base ≤ LOPAMM ≤ ind` pointwise — LOPAMM tracks the floor while
-   `ind` grows steeply, the gap widens with `M`, and LOPAMM stays under a `c·M²+d` bound.
+   net loss vs `M`. Result: `base ≤ LOPMM ≤ ind` pointwise — LOPMM tracks the floor while
+   `ind` grows steeply, the gap widens with `M`, and LOPMM stays under a `c·M²+d` bound.
 2. **Robustness** (`experiment2_robustness.py`) — fix `M=10`, sweep support sparsity `ρ`,
-   belief magnitude `B_θ`, re-quote rate `R=T/M`, and order `k`. LOPAMM is robust; `ind`'s
+   belief magnitude `B_θ`, re-quote rate `R=T/M`, and order `k`. LOPMM is robust; `ind`'s
    loss grows on every axis and **explodes with parlay order**.
 3. **Trader fairness** (`experiment3_trader.py`) — per-trader effective payout-per-premium
-   `p_eff`; the paired ratio `q = p_eff^{LOPAMM}/p_eff^{ind} ≈ 1` (±10% equivalence). LOPAMM's
+   `p_eff`; the paired ratio `q = p_eff^{LOPMM}/p_eff^{ind} ≈ 1` (±10% equivalence). LOPMM's
    lower operator loss is a **genuine efficiency gain, not value extracted from traders**.
 4. **Real data** (`experiment4_kalshi.py`) — replay actual Kalshi NBA same-game-parlay
    order flow (83 games, `M∈[42,315]`, parlay order `k≤8`), settled at the **real** game
-   outcomes. LOPAMM offers the full parlay book at **≈ zero incremental cost** (total ≈ base
+   outcomes. LOPMM offers the full parlay book at **≈ zero incremental cost** (total ≈ base
    floor); `ind`'s cost **explodes** (+174k over the corpus, peaking at 4-leg parlays).
    Runs Exp 1's engine on an atom-free lattice (real settlement ⇒ no `2^M`); validated
    **float-identical** to the dense engine (`exp4_validate.py`, 0.0 diff).

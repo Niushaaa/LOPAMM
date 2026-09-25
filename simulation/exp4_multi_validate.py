@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Validate the sparse checkpointed multi-game engine (experiment4_multi) against the
 dense lattice engine (experiment4_kalshi.run_game) on synthetic parlay-only flow.
-Both run LOPAMM + ind via the same bottom-up sweep; per-design total loss must match."""
+Both run LOPMM + ind via the same bottom-up sweep; per-design total loss must match."""
 import numpy as np
 
 import experiment4_kalshi as K
@@ -52,9 +52,9 @@ def main():
              "parlays": [{"S": S, "conj": c} for S, c in parlays],
              "tape": [("parlay", pi, p, sz, sd) for pi, p, sz, sd in tape]}
         r = K.run_game(g)
-        la, li = r["lopamm_total"], r["ind_total"]
+        la, li = r["lopmm_total"], r["ind_total"]
         worst = max(worst, abs(sa - la), abs(si - li))
-        print(f"seed {seed}: lopamm sparse={sa:9.4f} lattice={la:9.4f} | "
+        print(f"seed {seed}: lopmm sparse={sa:9.4f} lattice={la:9.4f} | "
               f"ind sparse={si:9.4f} lattice={li:9.4f}")
     print(f"\nmax abs diff: {worst:.3e}  -> {'MATCH' if worst < 1e-6 else 'MISMATCH'}")
 

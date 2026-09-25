@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Paper figure: operator net loss vs M for ind / LOPAMM / base.
+Paper figure: operator net loss vs M for ind / LOPMM / base.
 
-- ind, base, LOPAMM plotted as mean-over-seeds lines.
-- LOPAMM additionally shows the EXACT per-seed range (min..max band) across all seeds.
-- Overlay c*M^2 + d, least-squares fit to LOPAMM's worst-case (max-over-seeds) loss
+- ind, base, LOPMM plotted as mean-over-seeds lines.
+- LOPMM additionally shows the EXACT per-seed range (min..max band) across all seeds.
+- Overlay c*M^2 + d, least-squares fit to LOPMM's worst-case (max-over-seeds) loss
   then raised so it strictly upper-bounds every point.
 
 Reads per-seed net loss from the cached results in results_exp1_loworder/result_cache.
@@ -21,11 +21,17 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+# --- paper figure typography: 1.5x matplotlib's defaults (font.size 10 -> 15) ---
+plt.rcParams.update({
+    "font.size": 15, "axes.titlesize": 18, "axes.labelsize": 15,
+    "xtick.labelsize": 15, "ytick.labelsize": 15, "legend.fontsize": 15,
+})
+
 
 RC = "results_exp1_loworder/result_cache"
 OUT = "results_exp1_loworder"
-MODELS = ["ind", "LOPAMM", "base"]
-COL = {"ind": "tab:red", "LOPAMM": "tab:blue", "base": "tab:green"}
+MODELS = ["ind", "LOPMM", "base"]
+COL = {"ind": "tab:red", "LOPMM": "tab:blue", "base": "tab:green"}
 
 
 def decay_tag(support, decay):
@@ -68,8 +74,8 @@ def main():
     if len(Ms) == 0:
         print("no cached data found for this config"); return
     mean = {nm: np.array([data[M][nm].mean() for M in Ms]) for nm in MODELS}
-    amin = np.array([data[M]["LOPAMM"].min() for M in Ms])
-    amax = np.array([data[M]["LOPAMM"].max() for M in Ms])
+    amin = np.array([data[M]["LOPMM"].min() for M in Ms])
+    amax = np.array([data[M]["LOPMM"].max() for M in Ms])
 
     Mf = Ms.astype(float)
     c, d0 = np.polyfit(Mf ** 2, amax, 1)              # amax ~ c*M^2 + d0
@@ -80,9 +86,9 @@ def main():
     print(f"bound c*M^2 + d:  c = {c:.4g}   d = {d:.4g}   (binds at M={mbind})")
 
     fig, ax = plt.subplots(figsize=(7.2, 5.0))
-    ax.errorbar(Ms, mean["LOPAMM"], yerr=[mean["LOPAMM"] - amin, amax - mean["LOPAMM"]],
-                fmt="o-", color=COL["LOPAMM"], lw=2, ms=4, capsize=3, elinewidth=1.1,
-                label="LOPAMM (mean, min–max)")
+    ax.errorbar(Ms, mean["LOPMM"], yerr=[mean["LOPMM"] - amin, amax - mean["LOPMM"]],
+                fmt="o-", color=COL["LOPMM"], lw=2, ms=4, capsize=3, elinewidth=1.1,
+                label="LOPMM (mean, min–max)")
     ax.plot(Ms, mean["ind"], "s-", color=COL["ind"], lw=2, ms=4, label="ind (mean)")
     ax.plot(Ms, mean["base"], "^-", color=COL["base"], lw=1.6, ms=4,
             label="base (floor, mean)")
@@ -93,7 +99,7 @@ def main():
     ax.set_xticks(Ms)
     ax.set_xlabel("number of base events $M$")
     ax.set_ylabel("operator net loss")
-    ax.legend(frameon=False, fontsize=9)
+    ax.legend(frameon=False, fontsize=13.5)
     ax.grid(alpha=0.3)
     fig.tight_layout()
     tag = f"{a.support}{decay_tag(a.support, a.decay)}_M{a.Mmax}"
@@ -101,10 +107,10 @@ def main():
         fig.savefig(f"{OUT}/paper_net_loss_{tag}.{ext}", dpi=200)
     print(f"saved {OUT}/paper_net_loss_{tag}.png and .pdf")
 
-    print(f"\n{'M':>3} {'ind':>9} {'LOPAMM_mean':>10} {'LOPAMM_min':>9} "
-          f"{'LOPAMM_max':>9} {'cM^2+d':>9} {'base':>8}")
+    print(f"\n{'M':>3} {'ind':>9} {'LOPMM_mean':>10} {'LOPMM_min':>9} "
+          f"{'LOPMM_max':>9} {'cM^2+d':>9} {'base':>8}")
     for i, M in enumerate(Ms):
-        print(f"{M:>3} {mean['ind'][i]:>9.2f} {mean['LOPAMM'][i]:>10.2f} "
+        print(f"{M:>3} {mean['ind'][i]:>9.2f} {mean['LOPMM'][i]:>10.2f} "
               f"{amin[i]:>9.2f} {amax[i]:>9.2f} {bnd[i]:>9.2f} {mean['base'][i]:>8.2f}")
 
 

@@ -12,7 +12,7 @@ import json
 import os
 from collections import Counter
 
-KALSHI = "/Users/niusha/Documents/Projects/LOPAMM/kalshi"
+KALSHI = "/Users/niusha/Documents/Projects/LOPMM/kalshi"
 GAMES = f"{KALSHI}/data/games"
 OUT = "exp4_data"
 

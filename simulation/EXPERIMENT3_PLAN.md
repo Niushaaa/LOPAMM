@@ -1,11 +1,11 @@
 # Experiment 3 — Informed-trader deal comparison
 
-**Goal.** Show that LOPAMM's lower operator loss is a **genuine design efficiency, not
+**Goal.** Show that LOPMM's lower operator loss is a **genuine design efficiency, not
 value extracted from traders' pockets**: at a fixed operating point, the informed trader
-gets the **same effective price** (expected payout-per-premium) under LOPAMM and ind.
+gets the **same effective price** (expected payout-per-premium) under LOPMM and ind.
 Because operator loss = trader profit (zero-sum), the comparability is measured **per
 trade** — both designs fill the identical flow, so we compare each trader's deal under
-LOPAMM vs ind directly.
+LOPMM vs ind directly.
 
 Reuses the Exp 1 engine (flow with the correlated terminal joint `joint_p`). Driver:
 `experiment3_trader.py`.
@@ -15,7 +15,7 @@ Reuses the Exp 1 engine (flow with the correlated terminal joint `joint_p`). Dri
 ## 1. Fixed setup
 
 `M=15`, `support=pyramid`, `k=6`, `decay=1.25`, `B_θ=5`, `ρ=1`, `b=10`, `T=10M=150`,
-`seeds=100`, `base_seed=12345`. Designs: **LOPAMM and ind**. There is **no settlement**:
+`seeds=100`, `base_seed=12345`. Designs: **LOPMM and ind**. There is **no settlement**:
 payouts are scored in expectation against the terminal joint law `joint_p =
 softmax(Q/b)` (see §2), so each trader yields one exact, noise-free observation.
 
@@ -37,7 +37,7 @@ a design:
 
 Both designs fill the **same** `τ_S`, so per trader we form the paired ratio
 ```
-q = p_eff(LOPAMM) / p_eff(ind).
+q = p_eff(LOPMM) / p_eff(ind).
 ```
 `q ≈ 1` ⇒ the informed trader gets the same effective price under both designs.
 (Expected payout is used so `q` is well-defined per trader — realized payout would divide
@@ -51,7 +51,7 @@ Group trades by parlay order `|S| = 1…k`. We report, per `|S|` and pooled:
 - **mean `q` with a bootstrap 95% CI** (2000 resamples over traders) — the average deal;
 - the **fraction of traders within a ±10% equivalence band** (`0.9 ≤ q ≤ 1.1`);
 - **min–max and median** of `q`;
-and, pooled, the **per-trader correlation** (Pearson and Spearman) of `p_eff(LOPAMM)`
+and, pooled, the **per-trader correlation** (Pearson and Spearman) of `p_eff(LOPMM)`
 against `p_eff(ind)` — trade-by-trade co-movement — reported for all `|S|` and for
 `|S|≥2` separately (`|S|=1` base sub-trades are identical under both designs, so their
 `p_eff` coincides exactly).
@@ -60,7 +60,7 @@ Figure: `|S|` vs `q` (mean + min–max whiskers, median line, reference at `q=1`
 `results_exp3_trader/payout_premium_ratio_by_legs.png/.pdf`.
 
 **Reading:** if mean `q` sits within the ±10% band at every order (TOST-equivalent), the
-informed trader's expected price is comparable under both designs — LOPAMM's loss advantage
+informed trader's expected price is comparable under both designs — LOPMM's loss advantage
 comes from writing less corrective contract volume on its shared books, not from a worse
 deal to any trader.
 
@@ -70,7 +70,7 @@ deal to any trader.
 
 Mean `q` is within ~2% of an identical deal pooled and stays inside the ±10% equivalence
 band at every order (statistically equivalent by TOST at ±10%), with a mild downward drift
-in `|S|` (LOPAMM prices high-order parlays slightly more accurately, leaving the trader a
+in `|S|` (LOPMM prices high-order parlays slightly more accurately, leaving the trader a
 hair less edge). The effect is significant only because of the large `n` but economically
 negligible.
 
@@ -84,7 +84,7 @@ negligible.
 | 6 | 0.938 | [0.931, 0.946] | 0.52 | 0.923 |
 | **pool** | **0.978** | **[0.976, 0.980]** | **0.68** | 0.991 |
 
-Per-trader `p_eff` correlation (LOPAMM vs ind): all `|S|` Pearson 0.78 / Spearman 0.65;
+Per-trader `p_eff` correlation (LOPMM vs ind): all `|S|` Pearson 0.78 / Spearman 0.65;
 `|S|≥2` Pearson 0.67 / Spearman 0.57 — the two designs' effective prices track each other
 trade-by-trade and agree on average, with genuine per-trader spread (~52–77% within ±10%).
 
